@@ -8,5 +8,5 @@ def prependedLength(data: bytes, numBytes: int):
     # Get the length of the data represented in the desired number of bytes
     lengthBytes = bytes([len(data)]).rjust(numBytes, b'\0')
     if len(lengthBytes) > numBytes:
-        raise Exception("Data is too large")
+        raise Exception(f"Data length does not fit in {numBytes} bytes")
     return lengthBytes + data
