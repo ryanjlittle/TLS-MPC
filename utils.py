@@ -1,10 +1,7 @@
 def formattedArray(array: [bytes]):
-    data = b''
-    for elem in array:
-        data += prependedLength(elem, 2)
-    return prependedLength(data, 2)
+    return b''.join([prependedLen(x, 2) for x in array])
 
-def prependedLength(data: bytes, numBytes: int):
+def prependedLen(data: bytes, numBytes: int=2):
     # Get the length of the data represented in the desired number of bytes
     lengthBytes = bytes([len(data)]).rjust(numBytes, b'\0')
     if len(lengthBytes) > numBytes:
