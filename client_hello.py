@@ -9,10 +9,8 @@ class ClientHello():
         self.randomness = random if random is not None else bytes(32)
         # Hardcoded for now
         self.extensions = [ServerNameExtension([hostname]), 
-                           StatusRequestExtension(), 
                            SupportedGroupsExtension(),
-                           RenegotiationExtension(),
-                           SCTExtension()]
+                           RenegotiationExtension()]
         # Hardcoded for now to only support TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
         self.ciphersuites = [b'\xc0\x2f']
         

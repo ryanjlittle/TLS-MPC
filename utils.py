@@ -7,3 +7,9 @@ def prependedLen(data: bytes, numBytes: int=2):
     if len(lengthBytes) > numBytes:
         raise Exception(f"Data length does not fit in {numBytes} bytes")
     return lengthBytes + data
+
+def recvall(socket, length) -> bytes:
+    data = b''
+    while len(data) < length:
+        data += socket.recv(length-len(data))
+    return data
