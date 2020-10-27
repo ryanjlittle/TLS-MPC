@@ -1,5 +1,5 @@
 import io
-from utils import recvall
+from utils import recvall, parsePrependedLen
 
 
 HANDSHAKE_RECORD = b'\x16'
@@ -13,8 +13,8 @@ class ServerHandshakeMessage():
         if rec_header[0:3] != HANDSHAKE_RECORD + TLS_1_2:
             raise Exception("Unexpected record header")
         length = int.from_bytes(rec_header[3:5], "big")
-        data = recvall(socket, length)
-        self._parseData(io.BytesIO(data))
+        self.data = recvall(socket, length)
+        self._parseData(io.BytesIO(self.data))
 
 
 class ServerHello(ServerHandshakeMessage):
@@ -23,9 +23,8 @@ class ServerHello(ServerHandshakeMessage):
         self.header = data.read(4)
         self.version = data.read(2)
         self.random = data.read(32)
-        self.sessionIdLen = data.read(1)[0]
-        if self.sessionIdLen > 0:
-            self.sessionId = data.read(self.sessionIdLen)
+        sessionIdLen = data.read(1)[0]
+        self.sessionId = parsePrependedLen(data)
         self.cipherSuite = data.read(2)
         self.compressionMethod = data.read(1)
         self.extensionsLen = int.from_bytes(data.read(2), "big")
@@ -42,16 +41,20 @@ class ServerCertificate(ServerHandshakeMessage):
         self.certificates = []
         read_bytes = 0
         while read_bytes < self.certificatesLen:
-            certLen = int.from_bytes(data.read(3), "big")
-            self.certificates.append(data.read(certLen))
-            read_bytes += certLen + 3
+            cert = parsePrependedLen(data, 3)
+            self.certificates.append(cert)
+            read_bytes += len(cert) + 3
 
 
 class ServerKeyExchange(ServerHandshakeMessage):
 
     def _parseData(self, data):
         self.header = data.read(4)
-        
+        self.curveInfo = data.read(1)
+        self.curve = data.read(2)
+        self.pk = parsePrependedLen(data, 1)
+        self.signatureAlgo = data.read(2)
+        self.signature = parsePrependedLen(data)
 
 class ServerDone(ServerHandshakeMessage):
 

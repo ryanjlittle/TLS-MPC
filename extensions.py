@@ -57,8 +57,8 @@ class StatusRequestExtension(Extension):
 class SupportedGroupsExtension(Extension):
     
     def __init__(self):
-        # TODO: This is just a placeholder
-        data = prependedLen(b'\x00\x1d\x00\x17\x00\x18\x00\x19')
+        # Hardcoded now to only support curve 25519.
+        data = prependedLen(b'\x00\x1d')
         super().__init__(SUPPORTED_GROUPS, data)
 
 

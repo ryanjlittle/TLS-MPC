@@ -1,7 +1,9 @@
+import io
+
 def formattedArray(array: [bytes]):
     return b''.join([prependedLen(x, 2) for x in array])
 
-def prependedLen(data: bytes, numBytes: int=2):
+def prependedLen(data: bytes, numBytes=2):
     # Get the length of the data represented in the desired number of bytes
     lengthBytes = bytes([len(data)]).rjust(numBytes, b'\0')
     if len(lengthBytes) > numBytes:
@@ -13,3 +15,7 @@ def recvall(socket, length) -> bytes:
     while len(data) < length:
         data += socket.recv(length-len(data))
     return data
+
+def parsePrependedLen(data:io.BytesIO, numBytes=2):
+    length = int.from_bytes(data.read(numBytes), "big")
+    return data.read(length) if length > 0 else None
