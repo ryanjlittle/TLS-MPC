@@ -1,15 +1,27 @@
 from cryptography.hazmat.primitives.asymmetric import x25519
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, PrivateFormat, NoEncryption
+from crypto_utils import PRF
 
 class KeyExchange():
-    pass
+
+    def computeExpandedMasterSecret(self, server_key=bytes, 
+                                    client_rand=bytes, 
+                                    server_rand=bytes) -> bytes:
+        premaster_secret = self.exchange(server_key)
+        master_secret = PRF(secret = premaster_secret, 
+                            label = b'master secret', 
+                            seed = client_rand + server_rand,
+                            num_bytes = 48)
+        return PRF(secret = master_secret,
+                   label = b'key expansion',
+                   seed = server_rand + client_rand,
+                   num_bytes = 104)
 
 
 class X25519(KeyExchange):
 
     def __init__(self, sk: bytes = None):
-        # We can specify the private key if we want. This won't be used in TLS,
-        # but could be useful for testing 
+        # We can specify the private key if we want.
         if sk:
             self.private_key = x25519.X25519PrivateKey.from_private_bytes(sk)
         else:
@@ -28,8 +40,6 @@ class X25519(KeyExchange):
 
     def exchange(self, server_key=bytes) -> bytes:
         server_pub_key = x25519.X25519PublicKey.from_public_bytes(server_key)
-        return self.private_key.exchange(server_pub_key)
-
-    def getMasterSecret(self, client_rand=bytes, server_rand=bytes) -> bytes:
+        return self.private_key.exchange(server_pub_key) 
 
 
