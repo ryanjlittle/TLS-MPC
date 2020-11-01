@@ -57,7 +57,7 @@ class ClientKeyExchange():
 
 class ClientChangeCipherSpec():
 
-    def __init__():
+    def __init__(self):
         self.data = self._getData()
 
     def _getData(self) -> bytes:
@@ -66,3 +66,16 @@ class ClientChangeCipherSpec():
     def __bytes__(self):
         # Prepend record header
         return b'\x14\x03\x03' + prependedLen(self.data)
+
+
+class ClientFinished():
+
+    def __init__(self):
+        self.data = self._getData()
+
+    def _getData(self) -> bytes:
+        # TODO
+        return b''
+
+    def __bytes__(self):
+        return b'\x14' + prependedLen(self.data, 3)

@@ -30,3 +30,6 @@ class X25519(KeyExchange):
         server_pub_key = x25519.X25519PublicKey.from_public_bytes(server_key)
         return self.private_key.exchange(server_pub_key)
 
+    def getMasterSecret(self, client_rand=bytes, server_rand=bytes) -> bytes:
+
+

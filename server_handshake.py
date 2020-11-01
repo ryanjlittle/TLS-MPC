@@ -52,7 +52,7 @@ class ServerKeyExchange(ServerHandshakeMessage):
         self.header = data.read(4)
         self.curveInfo = data.read(1)
         self.curve = data.read(2)
-        self.pk = parsePrependedLen(data, 1)
+        self.public_key = parsePrependedLen(data, 1)
         self.signatureAlgo = data.read(2)
         self.signature = parsePrependedLen(data)
 
