@@ -4,6 +4,7 @@ from client_messages import ClientHello, ClientKeyExchange, \
 from server_handshake import ServerHello, ServerCertificate, \
     ServerKeyExchange, ServerDone
 from key_exchange import X25519
+from ciphers import AES_GCM
 from crypto_utils import PRF, sha256
 
 
@@ -20,7 +21,7 @@ class TlsSession():
 
     def connect(self):
         print("Trying to connect...")
-        self.socket.connect((self.ip, 443))
+        self.socket.connect((self.ip, 44330))
         print(f"Connected to {self.ip}.")
         self._handshake()
 
@@ -62,31 +63,48 @@ class TlsSession():
 
         client_change_cipher = ClientChangeCipherSpec()
         self.socket.send(bytes(client_change_cipher))
-        self.record += client_change_cipher.data
 
-        #TODO: Send client handshake finished
+
+        # TODO: Don't just hardcode this 
+        self.encryptor = AES_GCM(self.client_key, self.client_IV)
+        record_hash = self._PRF_HandshakeRecord()
+        client_finished = self.encryptor.createHandshakeFinishedPacket(record_hash)
+
+        print("client finished: ", bytes(client_finished))
+        self.socket.send(bytes(client_finished))
+
+
+
+        #TODO: Send client handshake finish
+
+        
         
         res = self.socket.recv(2048)
-        print(res)
+        print("response: ", res)
 
     def _calculateKeys(self):
-        expanded_key = self.key_exchange.computeExpandedMasterSecret(
+        master_secret, expanded_key = self.key_exchange.computeExpandedMasterSecret(
                 self.server_key, self.client_random, self.server_random)
-        self.client_MAC_key = expanded_key[:20]
-        self.server_MAC_key = expanded_key[20:40]
-        self.client_key = expanded_key[40:56]
-        self.server_key = expanded_key[56:72]
-        self.client_IV = expanded_key[72:88]
-        self.server_IV = expanded_key[88:104]
+        self.master_secret = master_secret
+        # The way we partition the master secret is unique to our ciphersuite.
+        self.client_key = expanded_key[:16]
+        self.server_key = expanded_key[16:32]
+        self.client_IV = expanded_key[32:36]
+        self.server_IV = expanded_key[36:40]
+        print(f"master secret: {master_secret}") 
+        print(f"client key: {self.client_key}") 
+        print(f"server key: {self.server_key}") 
+        print(f"server iv: {self.server_IV}") 
+        print(f"client iv: {self.client_IV}") 
 
-    def _hashHandshakeRecord(self) -> bytes:
-        return PRF(secret = self.masterkey,
+    def _PRF_HandshakeRecord(self) -> bytes:
+        return PRF(secret = self.master_secret,
                    label = b'client finished',
                    seed = sha256(self.record),
                    num_bytes = 12)
 
 def testSession():
-    session = TlsSession("wikipedia.org")
+    session = TlsSession("localhost")
     session.connect()
     
 if __name__ == "__main__":

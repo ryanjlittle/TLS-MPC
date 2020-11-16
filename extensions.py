@@ -85,12 +85,7 @@ class SignatureAlgorithmsExtension(Extension):
 
     def __init__(self, sigAlgos=[] ):
         if not sigAlgos:
-            sigAlgos = [RSA_PKCS1_SHA256,
-                        RSA_PKCS1_SHA384,
-                        RSA_PKCS1_SHA512,
-                        RSA_PSS_RSAE_SHA256,
-                        RSA_PSS_RSAE_SHA256,
-                        RSA_PSS_RSAE_SHA512]
+            sigAlgos = [RSA_PKCS1_SHA256]
         data = prependedLen(b''.join(sigAlgos))
         super().__init__(SIGNATURE_ALGORITHMS, data)
 

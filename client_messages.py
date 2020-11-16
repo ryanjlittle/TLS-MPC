@@ -10,7 +10,8 @@ class ClientHello():
         # Hardcoded for now
         self.extensions = [ServerNameExtension([hostname]), 
                            SupportedGroupsExtension(),
-                           RenegotiationExtension()]
+                           RenegotiationExtension(),
+                           SignatureAlgorithmsExtension()]
         # Hardcoded for now to only support TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
         self.ciphersuites = [b'\xc0\x2f']
         self.data = self._getData()
@@ -59,23 +60,26 @@ class ClientChangeCipherSpec():
 
     def __init__(self):
         self.data = self._getData()
-
-    def _getData(self) -> bytes:
-        return b'\x01'
-
+    
     def __bytes__(self):
         # Prepend record header
         return b'\x14\x03\x03' + prependedLen(self.data)
 
-
-class ClientFinished():
-
-    def __init__(self):
-        self.data = self._getData()
-
     def _getData(self) -> bytes:
-        # TODO
-        return b''
+        return b'\x01'
 
+
+class ClientHandshakeFinished():
+
+    # We should have 8 bytes for the nonce (explicit part)
+    def __init__(self, explicit_nonce: bytes, ciphertext: bytes):
+        self.data = explicit_nonce + ciphertext
+        
     def __bytes__(self):
-        return b'\x14' + prependedLen(self.data, 3)
+        return b'\x16\x03\x03' + prependedLen(self.data)
+
+
+class ClientApplicationData():
+
+    def __init__(self, data: bytes, ):
+        pass
