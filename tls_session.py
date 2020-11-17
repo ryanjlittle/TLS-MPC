@@ -2,7 +2,7 @@ import socket
 from client_messages import ClientHello, ClientKeyExchange, \
     ClientChangeCipherSpec
 from server_messages import ServerHello, ServerCertificate, \
-    ServerKeyExchange, ServerDone
+    ServerKeyExchange, ServerDone, ServerChangeCipherSpec, ServerFinished
 from key_exchange import X25519
 from ciphers import AES_GCM
 from crypto_utils import PRF, sha256
@@ -70,8 +70,15 @@ class TlsSession():
         record_hash = self._PRF_HandshakeRecord()
         client_finished = self.encryptor.createHandshakeFinishedPacket(record_hash)
 
-        print("client finished: ", bytes(client_finished))
         self.socket.send(bytes(client_finished))
+
+        serv_change_cipher = ServerChangeCipherSpec()
+        serv_change_cipher.parseFromStream(self.socket)
+
+        serv_finished = ServerFinished()
+        serv_finished.parseFromStream(self.socket)
+
+        print(serv_finished.__dict__)
 
 
 

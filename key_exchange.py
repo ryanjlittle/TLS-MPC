@@ -9,7 +9,6 @@ class KeyExchange():
                                     client_rand=bytes, 
                                     server_rand=bytes) -> bytes:
         premaster_secret = self.exchange(server_key)
-        print(f"premaster_secret: {premaster_secret}\n len: {len(premaster_secret)}")
         master_secret = PRF(secret = premaster_secret, 
                             label = b'master secret', 
                             seed = client_rand + server_rand,
