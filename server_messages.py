@@ -17,8 +17,8 @@ class ServerMessage():
             raise Exception(f"Received wrong content type: {self.rec_header[0]}")
         if self.rec_header[1:3] != TLS_1_2: 
             raise Exception("Received wrong TLS version")
-        length = int.from_bytes(self.rec_header[3:5], "big")
-        self.data = recvall(socket, length)
+        self.length = int.from_bytes(self.rec_header[3:5], "big")
+        self.data = recvall(socket, self.length)
         self._parseData(io.BytesIO(self.data))
 
 
@@ -92,3 +92,11 @@ class ServerFinished(ServerMessage):
     def _parseData(self, data):
         self.nonce = data.read(8)
         self.ciphertext = data.read(32)
+
+class ServerApplicationData(ServerMessage):
+
+    content_type = APPLICATION_DATA
+
+    def _parseData(self, data):
+        self.nonce = data.read(8)
+        self.ciphertext = data.read(self.length - 8)
