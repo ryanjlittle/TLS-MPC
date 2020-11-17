@@ -69,7 +69,7 @@ class ClientChangeCipherSpec():
         return b'\x01'
 
 
-class ClientHandshakeFinished():
+class ClientFinished():
 
     # We should have 8 bytes for the nonce (explicit part)
     def __init__(self, explicit_nonce: bytes, ciphertext: bytes):

@@ -1,6 +1,6 @@
 import socket
 from client_messages import ClientHello, ClientKeyExchange, \
-    ClientChangeCipherSpec
+    ClientChangeCipherSpec, ClientFinished
 from server_messages import ServerHello, ServerCertificate, \
     ServerKeyExchange, ServerDone, ServerChangeCipherSpec, ServerFinished
 from key_exchange import X25519
@@ -66,9 +66,15 @@ class TlsSession():
 
 
         # TODO: Don't just hardcode this 
-        self.encryptor = AES_GCM(self.client_key, self.client_IV)
         record_hash = self._PRF_HandshakeRecord()
-        client_finished = self.encryptor.createHandshakeFinishedPacket(record_hash)
+        self.client_sequence_num = bytes(8)
+
+        encryptor = AES_GCM(self.client_key, self.client_IV)
+        additional_data = self.client_sequence_num + b'\x16\x03\x03\x00\x10' 
+        payload = b'\x14\x00\x00\x0c' + record_hash 
+        ciphertext = encryptor.encrypt(self.client_sequence_num, payload, additional_data)
+
+        client_finished = ClientFinished(self.client_sequence_num, ciphertext)
 
         self.socket.send(bytes(client_finished))
 

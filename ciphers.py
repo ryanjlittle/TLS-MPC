@@ -1,6 +1,6 @@
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-from client_messages import ClientHandshakeFinished
+from client_messages import ClientFinished
 from utils import prependedLen
 
 # Ciphertexts
@@ -21,29 +21,13 @@ class Cipher():
 class AES_GCM(Cipher):
     
     def __init__(self, key: bytes, implicit_nonce: bytes):
-        self.aes = AESGCM(key)
+        self.cipher = AESGCM(key)
         self.implicit_nonce = implicit_nonce
-        self.sequence_num = 0
 
+    def encrypt(self, explicit_nonce: bytes, data: bytes, additional_data: bytes):
+        return self.cipher.encrypt(self.implicit_nonce + explicit_nonce, 
+                                   data, additional_data)
 
-    def encrypt(self, data: bytes, additional_data: bytes):
-        ciphertext = self.aes.encrypt(self._encryptionNonce(), data, additional_data)
-        self.sequence_num += 1
-        return ciphertext
-
-    #def createPacket(self, data: bytes):
-
-    def createHandshakeFinishedPacket(self, verify_data: bytes) -> ClientHandshakeFinished:
-        additional_data = self.sequence_num.to_bytes(8, byteorder='big') \
-                          + b'\x16\x03\x03\x00\x10' 
-        explicit_nonce = self._getExplicitNonce()
-        # Prepend a handshake header to the data
-        payload = b'\x14\x00\x00\x0c' + verify_data
-        ciphertext = self.encrypt(payload, additional_data)
-        return ClientHandshakeFinished(explicit_nonce, ciphertext)
-
-    def _getExplicitNonce(self):
-        return self.sequence_num.to_bytes(8, byteorder='big')
-
-    def _encryptionNonce(self):
-        return self.implicit_nonce + self._getExplicitNonce()
+    def decrypt(self, explicit_nonce: bytes, data: bytes, additional_data: bytes):
+        return self.cipher.decrypt(self.implicit_nonce + explicit_nonce, 
+                                   data, additional_data)
