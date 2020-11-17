@@ -2,23 +2,40 @@ from extensions import *
 from utils import prependedLen
 
 
+CHANGE_CIPHER_SPEC = b'\x14' 
+ALERT              = b'\x15'
+HANDSHAKE          = b'\x16'
+APPLICATION_DATA   = b'\x17'
 
-class ClientHello():
+TLS_1_0 = b'\x03\x01'
+TLS_1_2 = b'\x03\x03'
+
+
+
+class ClientMessage():
+
+    def __init__(self):
+        self.data = self._getData()
+
+    def __bytes__(self):
+        # Prepend record header
+        return self.content_type + self.version + prependedLen(self.data)
+
+
+class ClientHello(ClientMessage):
+
+    content_type = HANDSHAKE
+    version = TLS_1_0 # This is for backwards compatibility 
 
     def __init__(self, random=None, hostname=None):
         self.randomness = random if random is not None else bytes(32)
-        # Hardcoded for now
         self.extensions = [ServerNameExtension([hostname]), 
                            SupportedGroupsExtension(),
                            RenegotiationExtension(),
                            SignatureAlgorithmsExtension()]
-        # Hardcoded for now to only support TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        # We only support TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
         self.ciphersuites = [b'\xc0\x2f']
-        self.data = self._getData()
-
-    def __bytes__(self):
-        # Prepend record header 
-        return b'\x16\x03\x01' + prependedLen(self.data)
+        super().__init__()
 
     def _getData(self) -> bytes:
         data = b''
@@ -38,15 +55,14 @@ class ClientHello():
         data = b'\x01' + prependedLen(data, 3)
         return data
 
-class ClientKeyExchange():
+class ClientKeyExchange(ClientMessage):
+
+    content_type = HANDSHAKE
+    version = TLS_1_2
 
     def __init__(self, public_key: bytes):
         self.public_key = public_key
-        self.data = self._getData()
-
-    def __bytes__(self):
-        # Prepend record header
-        return b'\x16\x03\x03' + prependedLen(self.data)
+        super().__init__()
 
     def _getData(self) -> bytes:
         data = b''
@@ -56,30 +72,39 @@ class ClientKeyExchange():
         data = b'\x10' + prependedLen(data, 3)
         return data
 
-class ClientChangeCipherSpec():
+class ClientChangeCipherSpec(ClientMessage):
 
-    def __init__(self):
-        self.data = self._getData()
+    content_type = CHANGE_CIPHER_SPEC
+    version = TLS_1_2
     
-    def __bytes__(self):
-        # Prepend record header
-        return b'\x14\x03\x03' + prependedLen(self.data)
-
     def _getData(self) -> bytes:
         return b'\x01'
 
 
-class ClientFinished():
+class ClientFinished(ClientMessage):
+
+    content_type = HANDSHAKE
+    version = TLS_1_2
 
     # We should have 8 bytes for the nonce (explicit part)
     def __init__(self, explicit_nonce: bytes, ciphertext: bytes):
-        self.data = explicit_nonce + ciphertext
-        
-    def __bytes__(self):
-        return b'\x16\x03\x03' + prependedLen(self.data)
+        self.explicit_nonce = explicit_nonce
+        self.ciphertext = ciphertext
+        super().__init__()
+       
+    def _getData(self) -> bytes:
+        return self.explicit_nonce + self.ciphertext
 
 
-class ClientApplicationData():
+class ClientApplicationData(ClientMessage):
 
-    def __init__(self, data: bytes, ):
-        pass
+    content_type = APPLICATION_DATA
+    version = TLS_1_2
+    
+    def __init__(self, explicit_nonce: bytes, ciphertext: bytes):
+        self.explicit_nonce = explicit_nonce
+        self.ciphertext = ciphertext
+        super().__init__()
+
+    def _getData(self) -> bytes:
+        return self.explicit_nonce + self.ciphertext

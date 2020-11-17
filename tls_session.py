@@ -67,14 +67,19 @@ class TlsSession():
 
         # TODO: Don't just hardcode this 
         record_hash = self._PRF_HandshakeRecord()
-        self.client_sequence_num = bytes(8)
+        self.client_seq_num = bytes(8)
+        self.server_seq_num = bytes(8)
 
         encryptor = AES_GCM(self.client_key, self.client_IV)
-        additional_data = self.client_sequence_num + b'\x16\x03\x03\x00\x10' 
+        
+        additional_data = self.client_seq_num + b'\x16\x03\x03\x00\x10' 
         payload = b'\x14\x00\x00\x0c' + record_hash 
-        ciphertext = encryptor.encrypt(self.client_sequence_num, payload, additional_data)
+        ciphertext = encryptor.encrypt(self.client_seq_num, payload, additional_data)
 
-        client_finished = ClientFinished(self.client_sequence_num, ciphertext)
+
+
+
+        client_finished = ClientFinished(self.client_seq_num, ciphertext)
 
         self.socket.send(bytes(client_finished))
 
@@ -84,16 +89,18 @@ class TlsSession():
         serv_finished = ServerFinished()
         serv_finished.parseFromStream(self.socket)
 
-        print(serv_finished.__dict__)
+        decryptor = AES_GCM(self.server_key, self.server_IV)
 
+        additional_data = self.server_seq_num + b'\x16\x03\x03\x00\x10'
+        plaintext = decryptor.decrypt(serv_finished.nonce, serv_finished.ciphertext, additional_data)
 
+        print(plaintext)
 
-        #TODO: Send client handshake finish
+        #TODO: Verify plaintext is correct
 
-        
-        
-        res = self.socket.recv(2048)
-        print("response: ", res)
+    def send(self, data: bytes):
+        pass
+
 
     def _calculateKeys(self):
         master_secret, expanded_key = self.key_exchange.computeExpandedMasterSecret(

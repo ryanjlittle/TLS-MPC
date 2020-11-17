@@ -90,5 +90,5 @@ class ServerFinished(ServerMessage):
     content_type = HANDSHAKE
 
     def _parseData(self, data):
-        self.iv = data.read(8)
+        self.nonce = data.read(8)
         self.ciphertext = data.read(32)
