@@ -1,7 +1,7 @@
 import socket
 from client_messages import ClientHello, ClientKeyExchange, \
     ClientChangeCipherSpec
-from server_handshake import ServerHello, ServerCertificate, \
+from server_messages import ServerHello, ServerCertificate, \
     ServerKeyExchange, ServerDone
 from key_exchange import X25519
 from ciphers import AES_GCM
@@ -91,11 +91,6 @@ class TlsSession():
         self.server_key = expanded_key[16:32]
         self.client_IV = expanded_key[32:36]
         self.server_IV = expanded_key[36:40]
-        print(f"master secret: {master_secret}") 
-        print(f"client key: {self.client_key}") 
-        print(f"server key: {self.server_key}") 
-        print(f"server iv: {self.server_IV}") 
-        print(f"client iv: {self.client_IV}") 
 
     def _PRF_HandshakeRecord(self) -> bytes:
         return PRF(secret = self.master_secret,
