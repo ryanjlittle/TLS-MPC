@@ -1,15 +1,14 @@
 from extensions import *
 from utils import prependedLen
 
-
+# Record types
 CHANGE_CIPHER_SPEC = b'\x14' 
-ALERT              = b'\x15'
 HANDSHAKE          = b'\x16'
 APPLICATION_DATA   = b'\x17'
 
+# TLS versions 
 TLS_1_0 = b'\x03\x01'
 TLS_1_2 = b'\x03\x03'
-
 
 
 class ClientMessage():
@@ -23,12 +22,14 @@ class ClientMessage():
 
 
 class ClientHello(ClientMessage):
-
+    """ 
+    https://tools.ietf.org/html/rfc5246#section-7.4.1.2 
+    """
     content_type = HANDSHAKE
     version = TLS_1_0 # This is for backwards compatibility 
 
-    def __init__(self, random=None, hostname=None):
-        self.randomness = random if random is not None else bytes(32)
+    def __init__(self, random: bytes, hostname: bytes):
+        self.randomness = random
         self.extensions = [ServerNameExtension([hostname]), 
                            SupportedGroupsExtension(),
                            RenegotiationExtension(),
@@ -56,7 +57,9 @@ class ClientHello(ClientMessage):
         return data
 
 class ClientKeyExchange(ClientMessage):
-
+    """ 
+    https://tools.ietf.org/html/rfc5246#section-7.4.7 
+    """
     content_type = HANDSHAKE
     version = TLS_1_2
 
@@ -73,7 +76,9 @@ class ClientKeyExchange(ClientMessage):
         return data
 
 class ClientChangeCipherSpec(ClientMessage):
-
+    """
+    https://tools.ietf.org/html/rfc5246#section-7.1
+    """
     content_type = CHANGE_CIPHER_SPEC
     version = TLS_1_2
     
@@ -82,7 +87,9 @@ class ClientChangeCipherSpec(ClientMessage):
 
 
 class ClientFinished(ClientMessage):
-
+    """
+    https://tools.ietf.org/html/rfc5246#section-7.4.9
+    """
     content_type = HANDSHAKE
     version = TLS_1_2
 
