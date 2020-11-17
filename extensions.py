@@ -90,6 +90,9 @@ class SignatureAlgorithmsExtension(Extension):
         super().__init__(SIGNATURE_ALGORITHMS, data)
 
 
+"""
+Currently unused and doesn't work
+"""
 class PaddingExtension(Extension):
 
     def __init__(self, dataLen, paddedLen):
