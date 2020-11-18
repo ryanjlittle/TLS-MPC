@@ -48,7 +48,7 @@ class TlsSession():
                                                  ciphertext)
         self.socket.send(bytes(application_data))
 
-    def recv(self) -> bytes:
+    def recv_response(self) -> bytes:
         self.server_seq_num = self._incrementSeqNum(self.server_seq_num)
         application_data = ServerApplicationData()
         application_data.parseFromStream(self.socket)
@@ -96,13 +96,10 @@ class TlsSession():
         client_change_cipher = ClientChangeCipherSpec()
         self.socket.send(bytes(client_change_cipher))
 
-        # TODO: Don't just hardcode this 
         record_hash = self._PRF_HandshakeRecord()
         self.client_seq_num = bytes(8)
-        self.server_seq_num = bytes(8)
 
         self.encryptor = AES_GCM(self.client_key, self.client_IV)
-        
         additional_data = self.client_seq_num + b'\x16\x03\x03\x00\x10' 
         payload = b'\x14\x00\x00\x0c' + record_hash 
         ciphertext = self.encryptor.encrypt(self.client_seq_num, 
@@ -111,19 +108,20 @@ class TlsSession():
         self.socket.send(bytes(client_finished))
 
     def _recvFinished(self):
-
         serv_change_cipher = ServerChangeCipherSpec()
         serv_change_cipher.parseFromStream(self.socket)
 
         serv_finished = ServerFinished()
         serv_finished.parseFromStream(self.socket)
+        
+        self.server_seq_num = bytes(8)
 
         self.decryptor = AES_GCM(self.server_key, self.server_IV)
-
         additional_data = self.server_seq_num + b'\x16\x03\x03\x00\x10'
         plaintext = self.decryptor.decrypt(serv_finished.nonce, 
                                            serv_finished.ciphertext, 
                                            additional_data)
+        #TODO: verify that the plaintext matches the hash of the record
 
     def _incrementSeqNum(self, seq_num: bytes) -> bytes:
         # We can't increment bytes directly in python so we convert to int and back
@@ -136,7 +134,6 @@ class TlsSession():
         master_secret, expanded_key = key_exchange.computeExpandedMasterSecret(
                 self.server_key, self.client_random, self.server_random)
         self.master_secret = master_secret
-        # The way we partition the master secret is unique to our ciphersuite.
         self.client_key = expanded_key[:16]
         self.server_key = expanded_key[16:32]
         self.client_IV = expanded_key[32:36]
@@ -154,7 +151,7 @@ def testSession():
     session = TlsSession("localhost", port=44330)
     session.connect()
     session.send(data)
-    res = session.recv()
+    res = session.recv_response()
     print(res)
     
 if __name__ == "__main__":
