@@ -1,6 +1,6 @@
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-class AES_GCM(Cipher):
+class AES_GCM():
     """ This class is really just a wrapper for the actual AES GCM
         implementation. It stores the implicit nonce (generated in the key
         calculation) so that you only have to give it the explicit nonce
