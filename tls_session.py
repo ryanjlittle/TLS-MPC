@@ -40,21 +40,25 @@ class TlsSession():
     
     def send(self, data: bytes):
         self.client_seq_num = self._incrementSeqNum(self.client_seq_num)
-        additional_data = self.client_seq_num + b'\x17\x03\x03' + len(data).to_bytes(2, byteorder='big')
-        ciphertext = self.encryptor.encrypt(self.client_seq_num, data, additional_data)
-        application_data = ClientApplicationData(self.client_seq_num, ciphertext)
-
+        additional_data = self.client_seq_num + b'\x17\x03\x03' \
+                          + len(data).to_bytes(2, byteorder='big')
+        ciphertext = self.encryptor.encrypt(self.client_seq_num, 
+                                            data, additional_data)
+        application_data = ClientApplicationData(self.client_seq_num, 
+                                                 ciphertext)
         self.socket.send(bytes(application_data))
-        print("Sent")
 
     def recv(self) -> bytes:
         self.server_seq_num = self._incrementSeqNum(self.server_seq_num)
         application_data = ServerApplicationData()
         application_data.parseFromStream(self.socket)
-        additional_data = self.server_seq_num + b'\x17\x03\x03' + len(application_data.ciphertext).to_bytes(2, byteorder='big')
-        plaintext = self.decryptor.decrypt(application_data.nonce, application_data.ciphertext, additional_data)
-        return plaintext
-
+        # Subtract the length of the auth tag (16 bytes) to get the data length
+        data_len = len(application_data.ciphertext)-16 
+        additional_data = self.server_seq_num + b'\x17\x03\x03' \
+                          + data_len.to_bytes(2, byteorder='big')
+        return self.decryptor.decrypt(application_data.nonce, 
+                                      application_data.ciphertext, 
+                                      additional_data)
 
     def _sendHello(self):
         hello = ClientHello(random=self.client_random, hostname=self.hostname)
@@ -101,9 +105,8 @@ class TlsSession():
         
         additional_data = self.client_seq_num + b'\x16\x03\x03\x00\x10' 
         payload = b'\x14\x00\x00\x0c' + record_hash 
-        ciphertext = self.encryptor.encrypt(self.client_seq_num, payload, additional_data)
-
-
+        ciphertext = self.encryptor.encrypt(self.client_seq_num, 
+                                            payload, additional_data)
         client_finished = ClientFinished(self.client_seq_num, ciphertext)
         self.socket.send(bytes(client_finished))
 
@@ -118,16 +121,13 @@ class TlsSession():
         self.decryptor = AES_GCM(self.server_key, self.server_IV)
 
         additional_data = self.server_seq_num + b'\x16\x03\x03\x00\x10'
-        plaintext = self.decryptor.decrypt(serv_finished.nonce, serv_finished.ciphertext, additional_data)
-
-        print(plaintext)
-
-        #TODO: Verify plaintext is correct
-
+        plaintext = self.decryptor.decrypt(serv_finished.nonce, 
+                                           serv_finished.ciphertext, 
+                                           additional_data)
 
     def _incrementSeqNum(self, seq_num: bytes) -> bytes:
         # We can't increment bytes directly in python so we convert to int and back
-        inc_seq_num = int.from_bytes(self.client_seq_num, byteorder='big') + 1
+        inc_seq_num = int.from_bytes(seq_num, byteorder='big') + 1
         return inc_seq_num.to_bytes(8, byteorder='big')
 
     def _calculateKeys(self):
@@ -149,7 +149,7 @@ class TlsSession():
                    num_bytes = 12)
 
 def testSession():
-    data = b'ping'
+    data = b'GET /index.txt HTTP/1.1\r\nHost: localhost:44330\r\nAccept: */*'
 
     session = TlsSession("localhost", port=44330)
     session.connect()
