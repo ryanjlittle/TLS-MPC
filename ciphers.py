@@ -1,25 +1,14 @@
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-from client_messages import ClientFinished
-from utils import prependedLen
-
-# Ciphertexts
-TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 = b'\xc0\x2f'
-
-
-#CipherSelect = {TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256: AES_GCM}
-
-# Is a parent class even useful?
-class Cipher():
-    def __init__(self, ciphersuite: bytes, key: bytes, 
-                 mac_key: bytes, iv: bytes):
-        pass
-
-
-
-
 class AES_GCM(Cipher):
-    
+    """ This class is really just a wrapper for the actual AES GCM
+        implementation. It stores the implicit nonce (generated in the key
+        calculation) so that you only have to give it the explicit nonce
+        when you need to encrypt/decrypt.
+
+        Nonce stuff is defined in https://tools.ietf.org/html/rfc5288.
+    """
+
     def __init__(self, key: bytes, implicit_nonce: bytes):
         self.cipher = AESGCM(key)
         self.implicit_nonce = implicit_nonce

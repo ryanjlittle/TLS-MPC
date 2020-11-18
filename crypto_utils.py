@@ -1,6 +1,7 @@
 from cryptography.hazmat.primitives import hashes, hmac
 from secrets import token_bytes
 
+""" https://tools.ietf.org/html/rfc5246#section-5 """
 def p_hash(secret: bytes, seed: bytes, num_bytes: int) -> bytes:
     hmac_ = hmac.HMAC(secret, hashes.SHA256())
     A = seed
@@ -15,12 +16,12 @@ def p_hash(secret: bytes, seed: bytes, num_bytes: int) -> bytes:
     return output[:num_bytes]
 
 
+""" https://tools.ietf.org/html/rfc5246#section-5 """
 def PRF(secret: bytes, label: bytes, seed: bytes, num_bytes: int) -> bytes:
     return p_hash(secret, label + seed, num_bytes)
 
 def randomBytes(numBytes: int) -> bytes:
     return token_bytes(numBytes)
-
 
 # This exists because I want to hash the records of the handshake in
 # tls_session, but I don't want to bring in any crypto imports in the main

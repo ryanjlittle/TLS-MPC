@@ -4,10 +4,10 @@ from crypto_utils import PRF
 
 class KeyExchange():
 
-    # Returns a tuple (master_secret, expanded_master).
     def computeExpandedMasterSecret(self, server_key=bytes, 
                                     client_rand=bytes, 
                                     server_rand=bytes) -> bytes:
+        """ https://tools.ietf.org/html/rfc5246#section-6.3 """
         premaster_secret = self.exchange(server_key)
         master_secret = PRF(secret = premaster_secret, 
                             label = b'master secret', 
