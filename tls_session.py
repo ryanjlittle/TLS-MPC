@@ -48,6 +48,9 @@ class TlsSession():
         application_data = ClientApplicationData(self.client_seq_num, 
                                                  ciphertext)
         self.socket.send(bytes(application_data))
+        if self.logging:
+            print('\nClient Application Data')
+            print(application_data)
 
     def recv_response(self) -> bytes:
         self.server_seq_num = self._incrementSeqNum(self.server_seq_num)
@@ -67,6 +70,9 @@ class TlsSession():
     def _sendHello(self):
         hello = ClientHello(random=self.client_random, hostname=self.hostname)
         self.socket.send(bytes(hello))
+        if self.logging:
+            print('\nClient Hello')
+            print(hello)
         self.record += hello.data
 
     def _recvHello(self):
@@ -77,7 +83,6 @@ class TlsSession():
             print(serv_hello)
         self.server_random = serv_hello.random
         self.record += serv_hello.data
-        print(serv_hello)
 
     def _recvCertificate(self):
         serv_cert = ServerCertificate()
@@ -107,11 +112,17 @@ class TlsSession():
     def _sendKeyExchange(self):
         client_key_ex = ClientKeyExchange(self.public_key)
         self.socket.send(bytes(client_key_ex))
+        if self.logging:
+            print('\nClient Key Exchange')
+            print(client_key_ex)
         self.record += client_key_ex.data
         
     def _sendFinished(self):
         client_change_cipher = ClientChangeCipherSpec()
         self.socket.send(bytes(client_change_cipher))
+        if self.logging:
+            print('\nClient Change Cipher Spec')
+            print(client_change_cipher)
 
         record_hash = self._PRF_HandshakeRecord()
         self.client_seq_num = bytes(8)
@@ -123,10 +134,16 @@ class TlsSession():
                                             payload, additional_data)
         client_finished = ClientFinished(self.client_seq_num, ciphertext)
         self.socket.send(bytes(client_finished))
+        if self.logging:
+            print('\nClient Finished')
+            print(client_finished)
 
     def _recvFinished(self):
         serv_change_cipher = ServerChangeCipherSpec()
         serv_change_cipher.parseFromStream(self.socket)
+        if self.logging:
+            print('\nServer Change Cipher Spec')
+            print(serv_change_cipher)
 
         serv_finished = ServerFinished()
         serv_finished.parseFromStream(self.socket)

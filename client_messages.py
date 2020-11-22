@@ -1,5 +1,5 @@
 from extensions import *
-from utils import prependedLen
+from utils import prependedLen, hexdump
 
 # Record types
 CHANGE_CIPHER_SPEC = b'\x14' 
@@ -19,6 +19,9 @@ class ClientMessage():
     def __bytes__(self):
         # Prepend record header
         return self.content_type + self.version + prependedLen(self.data)
+
+    def __repr__(self):
+        return hexdump(bytes(self))
 
 
 class ClientHello(ClientMessage):
