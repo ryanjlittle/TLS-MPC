@@ -10,9 +10,10 @@ from crypto_utils import PRF, randomBytes, sha256
 
 class TlsSession():
     
-    def __init__(self, hostname, port=443):
+    def __init__(self, hostname, port=443, logging=False):
         self.hostname = hostname
         self.port = port
+        self.logging=logging
         # Initialise a socket for an IPv4, TCP connection
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ip = socket.gethostbyname(hostname)
@@ -52,6 +53,9 @@ class TlsSession():
         self.server_seq_num = self._incrementSeqNum(self.server_seq_num)
         application_data = ServerApplicationData()
         application_data.parseFromStream(self.socket)
+        if self.logging:
+            print('\nApplication Data')
+            print(application_data)
         # Subtract the length of the auth tag (16 bytes) to get the data length
         data_len = len(application_data.ciphertext)-16 
         additional_data = self.server_seq_num + b'\x17\x03\x03' \
@@ -68,23 +72,36 @@ class TlsSession():
     def _recvHello(self):
         serv_hello = ServerHello()
         serv_hello.parseFromStream(self.socket)
+        if self.logging:
+            print('\nServer Hello')
+            print(serv_hello)
         self.server_random = serv_hello.random
         self.record += serv_hello.data
+        print(serv_hello)
 
     def _recvCertificate(self):
         serv_cert = ServerCertificate()
         serv_cert.parseFromStream(self.socket)
+        if self.logging:
+            print('\nServer Certificate')
+            print(serv_cert)
         self.record += serv_cert.data
 
     def _recvKeyExchange(self):
         serv_key_ex = ServerKeyExchange()
         serv_key_ex.parseFromStream(self.socket)
+        if self.logging:
+            print('\nServer Key Exchange')
+            print(serv_key_ex)
         self.server_key = serv_key_ex.public_key
         self.record += serv_key_ex.data
 
     def _recvHelloDone(self):
         serv_done = ServerDone()
         serv_done.parseFromStream(self.socket)
+        if self.logging:
+            print('\nServer Hello Done')
+            print(serv_done)
         self.record += serv_done.data
 
     def _sendKeyExchange(self):
@@ -113,6 +130,9 @@ class TlsSession():
 
         serv_finished = ServerFinished()
         serv_finished.parseFromStream(self.socket)
+        if self.logging:
+            print('\nServer Handshake Finished')
+            print(serv_finished)
         
         self.server_seq_num = bytes(8)
 
@@ -148,7 +168,7 @@ class TlsSession():
 def testSession():
     data = b'GET /index.txt HTTP/1.1\r\nHost: localhost:44330\r\nAccept: */*'
 
-    session = TlsSession("localhost", port=44330)
+    session = TlsSession("localhost", 44330, logging=True)
     session.connect()
     session.send(data)
     res = session.recv_response()

@@ -1,5 +1,5 @@
 import io
-from utils import recvall, parsePrependedLen
+from utils import recvall, parsePrependedLen, hexdump
 
 CHANGE_CIPHER_SPEC = 20 
 ALERT              = 21
@@ -21,6 +21,8 @@ class ServerMessage():
         self.data = recvall(socket, self.length)
         self._parseData(io.BytesIO(self.data))
 
+    def __repr__(self):
+        return hexdump(self.rec_header + self.data)
 
 class ServerHello(ServerMessage):
 

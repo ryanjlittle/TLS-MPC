@@ -1,4 +1,6 @@
 import io
+import string
+import binascii
 
 def formattedArray(array: [bytes]):
     return b''.join([prependedLen(x, 2) for x in array])
@@ -19,3 +21,13 @@ def recvall(socket, length) -> bytes:
 def parsePrependedLen(data:io.BytesIO, numBytes=2):
     length = int.from_bytes(data.read(numBytes), "big")
     return data.read(length) if length > 0 else None
+
+def hexdump(data: bytes) -> str:
+    groups = [data[i:i+16] for i in range(0,len(data), 16)]
+    lines = []
+    for group in groups:
+        line = binascii.hexlify(group, ' ').decode('ascii').ljust(51, ' ')
+        # Also print the ascii representation
+        line += ''.join([chr(b) if chr(b) in string.digits+string.ascii_letters+' ' else '.' for b in group])
+        lines += [line]
+    return '\n'.join(lines)
