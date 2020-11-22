@@ -1,4 +1,3 @@
-import io
 import string
 import binascii
 
@@ -11,16 +10,6 @@ def prependedLen(data: bytes, numBytes=2):
     if len(lengthBytes) > numBytes:
         raise Exception(f"Data length does not fit in {numBytes} bytes")
     return lengthBytes + data
-
-def recvall(socket, length) -> bytes:
-    data = b''
-    while len(data) < length:
-        data += socket.recv(length-len(data))
-    return data
-
-def parsePrependedLen(data:io.BytesIO, numBytes=2):
-    length = int.from_bytes(data.read(numBytes), "big")
-    return data.read(length) if length > 0 else None
 
 def hexdump(data: bytes) -> str:
     groups = [data[i:i+16] for i in range(0,len(data), 16)]

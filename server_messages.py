@@ -1,5 +1,5 @@
 import io
-from utils import recvall, parsePrependedLen, hexdump
+from utils import hexdump
 
 CHANGE_CIPHER_SPEC = 20 
 ALERT              = 21
@@ -7,6 +7,18 @@ HANDSHAKE          = 22
 APPLICATION_DATA   = 23
 
 TLS_1_2 = b'\x03\x03'
+
+
+def recvall(socket, length) -> bytes:
+    data = b''
+    while len(data) < length:
+        data += socket.recv(length-len(data))
+    return data
+
+
+def parsePrependedLen(data:io.BytesIO, numBytes=2):
+    length = int.from_bytes(data.read(numBytes), "big")
+    return data.read(length) if length > 0 else None
 
 
 class ServerMessage():
@@ -23,6 +35,7 @@ class ServerMessage():
 
     def __repr__(self):
         return hexdump(self.rec_header + self.data)
+
 
 class ServerHello(ServerMessage):
 
@@ -43,7 +56,6 @@ class ServerHello(ServerMessage):
 
 
 class ServerCertificate(ServerMessage):
-
 
     content_type = HANDSHAKE
 
@@ -102,3 +114,4 @@ class ServerApplicationData(ServerMessage):
     def _parseData(self, data):
         self.nonce = data.read(8)
         self.ciphertext = data.read(self.length - 8)
+
