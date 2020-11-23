@@ -13,11 +13,14 @@ def prependedLen(data: bytes, numBytes=2):
 
 def hexdump(data: bytes) -> str:
     printable = string.ascii_letters + string.digits + string.punctuation + ' '
-    groups = [data[i:i+16] for i in range(0, len(data), 16)]
     lines = []
-    for group in groups:
-        line = binascii.hexlify(group, ' ').decode('ascii').ljust(51, ' ')
-        # Also print the ascii representation
-        line += ''.join([chr(b) if chr(b) in printable else '.' for b in group])
-        lines += [line]
+    for i in range(0, len(data), 16):
+        chunk = data[i:i+16]
+        # 3 byte hex representation of the data index
+        bytenum = hex(i)[2:].rjust(6, '0') + '    '
+        # The 16 byte line in hex
+        line = binascii.hexlify(chunk, ' ').decode('ascii').ljust(51, ' ')
+        # The ascii representation of the line
+        asciis = ''.join([chr(b) if chr(b) in printable else '.' for b in chunk])
+        lines += [bytenum + line + asciis]
     return '\n'.join(lines)
