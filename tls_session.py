@@ -19,11 +19,12 @@ class TlsSession():
         self.ip = socket.gethostbyname(hostname)
         self.client_random = randomBytes(32)
         self.record = b''
-
     def connect(self):
-        print("Trying to connect...")
+        if self.logging:
+            print("Trying to connect...")
         self.socket.connect((self.ip, self.port))
-        print(f"Connected to {self.ip}.")
+        if self.logging:
+            print(f"Connected to {self.ip}.")
         self._handshake()
 
     def _handshake(self): 
@@ -183,9 +184,9 @@ class TlsSession():
                    num_bytes = 12)
 
 def testSession():
-    data = b'GET /index.txt HTTP/1.1\r\nHost: localhost:44330\r\nAccept: */*'
+    data = b'GET / HTTP/1.1\r\nHost: www.wikipedia.org\r\nAccept: */*\r\n\r\n'
 
-    session = TlsSession("localhost", 44330, logging=True)
+    session = TlsSession("wikipedia.org", logging=True)
     session.connect()
     session.send(data)
     res = session.recv_response()
