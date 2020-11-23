@@ -2,7 +2,8 @@ import socket
 from client_messages import ClientHello, ClientKeyExchange, \
     ClientChangeCipherSpec, ClientFinished, ClientApplicationData
 from server_messages import ServerHello, ServerCertificate, \
-    ServerKeyExchange, ServerDone, ServerChangeCipherSpec, ServerFinished, ServerApplicationData
+    ServerKeyExchange, ServerDone, ServerChangeCipherSpec, \
+    ServerFinished, ServerApplicationData
 from key_exchange import X25519
 from ciphers import AES_GCM
 from crypto_utils import PRF, randomBytes, sha256
