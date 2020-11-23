@@ -25,12 +25,14 @@ class ServerMessage():
 
     def parseFromStream(self, socket):
         self.rec_header = recvall(socket, 5)
+        self.length = int.from_bytes(self.rec_header[3:5], "big")
+        self.data = recvall(socket, self.length)
         if self.rec_header[0] != self.content_type:
+            print("\nServer Error")
+            print(self)
             raise Exception(f"Received wrong content type: {self.rec_header[0]}")
         if self.rec_header[1:3] != TLS_1_2: 
             raise Exception("Received wrong TLS version")
-        self.length = int.from_bytes(self.rec_header[3:5], "big")
-        self.data = recvall(socket, self.length)
         self._parseData(io.BytesIO(self.data))
 
     def __repr__(self):
