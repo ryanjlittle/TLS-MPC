@@ -1,1 +1,0 @@
-/usr/bin/c++   -pthread -Wall -funroll-loops -march=native -maes -mrdseed -std=c++11 -O3   -pthread -Wall -funroll-loops -march=native -maes -mrdseed -std=c++11 -O3 -Wno-ignored-attributes -rdynamic CMakeFiles/enc_public.dir/test/enc_public.cpp.o -o bin/enc_public  -Wl,-rpath,/usr/local/lib -lssl -lcrypto /usr/local/lib/libemp-tool.so 

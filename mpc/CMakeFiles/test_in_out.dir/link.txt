@@ -1,1 +1,0 @@
-/usr/bin/c++   -pthread -Wall -funroll-loops -march=native -maes -mrdseed -std=c++11 -O3   -pthread -Wall -funroll-loops -march=native -maes -mrdseed -std=c++11 -O3 -Wno-ignored-attributes -rdynamic CMakeFiles/test_in_out.dir/test/test_in_out.cpp.o -o bin/test_in_out  -Wl,-rpath,/usr/local/lib -lssl -lcrypto /usr/local/lib/libemp-tool.so 
