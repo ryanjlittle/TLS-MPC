@@ -116,6 +116,9 @@ class MPC():
 
             ctr = int(a[0], 16)
             tag ^= ctr
+            os.remove(file)
+        elif self.party == BOB:
+            os.remove("./bob.out")
 
         return tag.to_bytes(16, "big")
 
