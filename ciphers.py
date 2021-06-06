@@ -10,12 +10,18 @@ class AES_GCM():
     """
 
     def __init__(self, key: bytes, implicit_nonce: bytes):
+        self.key = key
         self.cipher = AESGCM(key)
         self.implicit_nonce = implicit_nonce
 
     def encrypt(self, explicit_nonce: bytes, data: bytes, additional_data: bytes):
-        return self.cipher.encrypt(self.implicit_nonce + explicit_nonce, 
-                                   data, additional_data)
+        print("ENCRYPTING...")
+        nonce = self.implicit_nonce + explicit_nonce
+        print("KEY: ", self.key.hex())
+        print("NONCE: ", nonce.hex())
+        print("DATA: ", data.hex())
+        print("ADDT: ", additional_data.hex())
+        return self.cipher.encrypt(nonce, data, additional_data)
 
     def decrypt(self, explicit_nonce: bytes, data: bytes, additional_data: bytes):
         return self.cipher.decrypt(self.implicit_nonce + explicit_nonce, 

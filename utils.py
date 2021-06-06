@@ -4,6 +4,20 @@ import binascii
 def formattedArray(array: [bytes]):
     return b''.join([prependedLen(x, 2) for x in array])
 
+def bytexor(a:bytes, b:bytes):
+    return bytes([i ^ j for i, j in zip(a,b)]) 
+
+def binaryToBytes(s: str):
+    return int(s, 2).to_bytes((len(s) + 7) // 8, byteorder='big')
+
+# reverses each byte in a string of 16 bytes. Used to convert between GCM field representations
+def byteReverse(x: int) -> int:
+    bytez = x.to_bytes(16, 'big')
+    out = []
+    for b in bytez:
+        out += [int(''.join(reversed(bin(b)[2:].zfill(8))), 2).to_bytes(1, 'big')]
+    return int.from_bytes(b''.join(out), 'big')
+
 def prependedLen(data: bytes, numBytes=2):
     # Get the length of the data represented in the desired number of bytes
     lengthBytes = bytes([len(data)]).rjust(numBytes, b'\0')

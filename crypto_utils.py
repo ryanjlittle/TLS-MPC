@@ -1,5 +1,6 @@
 from cryptography.hazmat.primitives import hashes, hmac
 from secrets import token_bytes
+from utils import bytexor
 
 """ https://tools.ietf.org/html/rfc5246#section-5 """
 def p_hash(secret: bytes, seed: bytes, num_bytes: int) -> bytes:
@@ -30,3 +31,19 @@ def sha256(data: bytes) -> bytes:
     hash_ = hashes.Hash(hashes.SHA256())
     hash_.update(data)
     return hash_.finalize()
+
+
+def hmac_mine(key: bytes, message: bytes) -> bytes:
+    blkwid = 64
+    key += bytes(-len(key)%blkwid) # pad key
+    print(key, len(key))
+    opad = b'\x5c' * blkwid
+    ipad = b'\x36' * blkwid
+    outer = bytexor(key, opad)
+    inner = bytexor(key, ipad)
+    return sha256(outer + sha256(inner + message))
+
+def hmac_real(key: bytes, message: bytes) -> bytes:
+    hmacc = hmac.HMAC(key, hashes.SHA256())
+    hmacc.update(message)
+    return hmacc.finalize()

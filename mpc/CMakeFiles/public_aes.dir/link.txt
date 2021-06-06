@@ -1,0 +1,1 @@
+/usr/bin/c++   -pthread -Wall -funroll-loops -march=native -maes -mrdseed -std=c++11 -O3   -pthread -Wall -funroll-loops -march=native -maes -mrdseed -std=c++11 -O3 -Wno-ignored-attributes -rdynamic CMakeFiles/public_aes.dir/test/public_aes.cpp.o -o bin/public_aes  -Wl,-rpath,/usr/local/lib -lssl -lcrypto /usr/local/lib/libemp-tool.so 

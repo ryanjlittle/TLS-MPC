@@ -1,0 +1,1 @@
+/usr/bin/c++   -pthread -Wall -funroll-loops -march=native -maes -mrdseed -std=c++11 -O3   -pthread -Wall -funroll-loops -march=native -maes -mrdseed -std=c++11 -O3 -Wno-ignored-attributes -rdynamic CMakeFiles/aesgcm.dir/test/aesgcm.cpp.o -o bin/aesgcm  -Wl,-rpath,/usr/local/lib -lssl -lcrypto /usr/local/lib/libemp-tool.so 

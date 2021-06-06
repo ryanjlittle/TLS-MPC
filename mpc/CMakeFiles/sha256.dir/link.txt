@@ -1,0 +1,1 @@
+/usr/bin/c++   -pthread -Wall -funroll-loops -march=native -maes -mrdseed -std=c++11 -O3   -pthread -Wall -funroll-loops -march=native -maes -mrdseed -std=c++11 -O3 -Wno-ignored-attributes -rdynamic CMakeFiles/sha256.dir/test/sha256.cpp.o -o bin/sha256  -Wl,-rpath,/usr/local/lib -lssl -lcrypto /usr/local/lib/libemp-tool.so 

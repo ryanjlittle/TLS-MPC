@@ -38,6 +38,9 @@ class ServerMessage():
     def __repr__(self):
         return hexdump(self.rec_header + self.data)
 
+    def __bytes__(self):
+        return self.rec_header + self.data
+
 
 class ServerHello(ServerMessage):
 
